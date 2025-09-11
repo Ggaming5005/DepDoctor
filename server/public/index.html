@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://cdn-icons-png.flaticon.com/512/2480/2480303.png"
+    />
+    <title>depdoctor — Dependency Health</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #0b1220;
+        --muted: #94a3b8;
+        --text: #e2e8f0;
+        --border: #23293a;
+      }
+      [data-theme="light"] {
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --muted: #64748b;
+        --text: #1e293b;
+        --border: #e2e8f0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+          Roboto, "Helvetica Neue", Arial;
+      }
+      .card {
+        background: var(--card);
+        color: var(--text);
+        border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(2, 6, 23, 0.08);
+        padding: 18px;
+        border: 1px solid var(--border);
+      }
+      .muted {
+        color: var(--muted);
+      }
+      pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono",
+          monospace;
+        color: var(--text);
+      }
+      table {
+        background: var(--card);
+        color: var(--text);
+      }
+      th,
+      td {
+        border-color: var(--border) !important;
+      }
+      thead {
+        background: #1e293b;
+        color: #e2e8f0;
+      }
+      [data-theme="light"] thead {
+        background: #f1f5f9;
+        color: #1e293b;
+      }
+      tr:hover {
+        background: #23293a !important;
+      }
+      [data-theme="light"] tr:hover {
+        background: #f3f4f6 !important;
+      }
+    </style>
+  </head>
+  <body data-theme="dark" class="min-h-screen p-6">
+    <div class="max-w-6xl mx-auto">
+      <header class="flex items-center gap-4 mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center">
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/2480/2480303.png"
+              alt="Depdoctor Icon"
+              class="w-10 h-10"
+            />
+          </div>
+          <div>
+            <h1 class="text-2xl font-semibold">depdoctor</h1>
+            <div class="text-sm muted">
+              Dependency health — analyze, migrate, badge
+            </div>
+          </div>
+        </div>
+        <div class="ml-auto flex items-center gap-3">
+          <button id="themeToggle" class="px-3 py-2 rounded border muted">
+            Toggle theme
+          </button>
+          <button
+            id="openCli"
+            class="px-3 py-2 rounded bg-indigo-600 text-white"
+          >
+            Run CLI (local)
+          </button>
+        </div>
+      </header>
+
+      <main class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <section class="card md:col-span-3">
+          <h2 class="text-lg font-semibold">Project (current folder)</h2>
+          <p class="muted text-sm">
+            Dashboard runs actions against the folder where you started the
+            server. No path typing required.
+          </p>
+          <div class="mt-4 flex gap-2">
+            <button
+              id="analyzeBtn"
+              class="px-4 py-2 rounded bg-indigo-600 text-white"
+            >
+              Analyze
+            </button>
+            <button id="migrateBtn" class="px-4 py-2 rounded border">
+              Migrate (check)
+            </button>
+            <button
+              id="migrateFixBtn"
+              class="px-4 py-2 rounded bg-amber-500 text-white"
+            >
+              Migrate & Fix
+            </button>
+            <button id="badgeBtn" class="px-4 py-2 rounded border">
+              Generate Badge
+            </button>
+            <label class="ml-auto flex items-center gap-2 muted"
+              ><input id="depcheckToggle" type="checkbox" /> Run depcheck</label
+            >
+          </div>
+        </section>
+
+        <section class="card">
+          <h3 class="font-semibold">Project Score</h3>
+          <div id="score" class="text-4xl font-bold mt-4">—</div>
+          <div id="scoreNote" class="muted text-sm mt-2">
+            Run analysis to compute
+          </div>
+        </section>
+
+        <section class="card">
+          <h3 class="font-semibold">Top Issues</h3>
+          <ul id="issues" class="mt-4 space-y-2 text-sm">
+            <li class="muted">No analysis run yet.</li>
+          </ul>
+        </section>
+
+        <section class="card md:col-span-3">
+          <h3 class="font-semibold">Analysis Output</h3>
+          <pre
+            id="output"
+            class="mt-4 p-3 border rounded bg-transparent h-80 overflow-auto"
+          >
+No output yet.</pre
+          >
+        </section>
+      </main>
+    </div>
+
+    <script>
+      async function apiPost(path, body) {
+        const res = await fetch(path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        return await res.json();
+      }
+
+      function setTheme(t) {
+        document.body.setAttribute("data-theme", t);
+        localStorage.setItem("depdoctor:theme", t);
+      }
+      document.getElementById("themeToggle").addEventListener("click", () => {
+        const cur =
+          document.body.getAttribute("data-theme") === "dark"
+            ? "dark"
+            : "light";
+        setTheme(cur === "dark" ? "light" : "dark");
+      });
+      const saved = localStorage.getItem("depdoctor:theme") || "dark";
+      setTheme(saved);
+
+      async function runAction(action, options = {}) {
+        document.getElementById("output").textContent = `Running ${action}...`;
+        try {
+          const r = await apiPost("/api/" + action, { path: "", options });
+          if (!r.ok) {
+            document.getElementById("output").textContent =
+              "Error: " + (r.error || JSON.stringify(r));
+            return;
+          }
+          if (action === "analyze") {
+            const res = r.result;
+            // Build a table for the output
+            if (res.packages && Array.isArray(res.packages)) {
+              let table = `<div class="overflow-auto"><table class="min-w-full text-sm text-left border border-slate-200 dark:border-slate-700 rounded-lg"><thead><tr class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">`;
+              table += `<th class="px-4 py-2 font-semibold">Name</th><th class="px-4 py-2 font-semibold">Requested</th><th class="px-4 py-2 font-semibold">Latest</th><th class="px-4 py-2 font-semibold">Score</th><th class="px-4 py-2 font-semibold">Vuln</th><th class="px-4 py-2 font-semibold">Downloads</th><th class="px-4 py-2 font-semibold">Last Update</th><th class="px-4 py-2 font-semibold">Size</th><th class="px-4 py-2 font-semibold">Deprecated</th>`;
+              table += `</tr></thead><tbody>`;
+              res.packages.forEach((pkg) => {
+                const scoreColor =
+                  pkg.score >= 75
+                    ? "text-emerald-500 font-bold"
+                    : pkg.score >= 50
+                    ? "text-yellow-500 font-semibold"
+                    : "text-red-500 font-semibold";
+                const vulnColor =
+                  pkg.vulnerabilityCount > 0
+                    ? "bg-red-500 text-white px-2 py-1 rounded-full font-bold"
+                    : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-2 py-1 rounded-full";
+                // SVG checkmark for not deprecated, SVG cross for deprecated
+                const depIcon = pkg.deprecated
+                  ? '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display:inline;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="9" fill="#ef4444"/><path d="M7 7l6 6M13 7l-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>'
+                  : '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display:inline;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="9" fill="#22c55e"/><path d="M6 10l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                const depColor = pkg.deprecated
+                  ? "text-red-500 font-bold"
+                  : "text-emerald-500";
+                // Format downloads
+                const downloads = pkg.downloads
+                  ? pkg.downloads.toLocaleString()
+                  : "";
+                // Format last update as YYYY-MM-DD if available
+                let lastUpdate = "N/A";
+                if (pkg.lastUpdated) {
+                  try {
+                    const d = new Date(pkg.lastUpdated);
+                    if (!isNaN(d)) {
+                      lastUpdate = d.toISOString().slice(0, 10);
+                    }
+                  } catch {}
+                }
+                // Format size
+                let size = "";
+                if (pkg.size && pkg.size.gzipBytes != null) {
+                  const kb = (pkg.size.gzipBytes / 1024).toFixed(1);
+                  size = `${kb} KB`;
+                } else {
+                  size = "N/A";
+                }
+                table += `<tr class="border-b" style="border-color: var(--border)">`;
+                table += `<td class="px-4 py-2 font-mono">${pkg.name}</td>`;
+                table += `<td class="px-4 py-2">${pkg.requested}</td>`;
+                table += `<td class="px-4 py-2">${pkg.latest}</td>`;
+                table += `<td class="px-4 py-2 ${scoreColor}">${
+                  pkg.score ?? ""
+                }</td>`;
+                table += `<td class="px-4 py-2"><span class="${vulnColor}">${pkg.vulnerabilityCount}</span></td>`;
+                table += `<td class="px-4 py-2">${downloads}</td>`;
+                table += `<td class="px-4 py-2">${lastUpdate}</td>`;
+                table += `<td class="px-4 py-2">${size}</td>`;
+                table += `<td class="px-4 py-2 ${depColor}">${depIcon}${
+                  pkg.deprecatedMessage
+                    ? ' <span title="' + pkg.deprecatedMessage + '">?</span>'
+                    : ""
+                }</td>`;
+                table += `</tr>`;
+              });
+              table += `</tbody></table></div>`;
+              document.getElementById("output").innerHTML = table;
+            } else {
+              document.getElementById("output").textContent =
+                "No packages found.";
+            }
+            const score =
+              res.projectScore ??
+              (res.packages
+                ? Math.round(
+                    res.packages.reduce((a, b) => a + (b.score || 50), 0) /
+                      res.packages.length
+                  )
+                : null);
+            if (score != null)
+              document.getElementById("score").textContent = score + "%";
+            const issuesEl = document.getElementById("issues");
+            issuesEl.innerHTML = "";
+            if (res.packages) {
+              const top = res.packages
+                .filter(
+                  (p) =>
+                    p.deprecated ||
+                    (p.vulnerabilityCount && p.vulnerabilityCount > 0) ||
+                    (p.score && p.score < 50)
+                )
+                .slice(0, 6);
+              if (top.length === 0)
+                issuesEl.innerHTML =
+                  '<li class="text-emerald-500">No critical issues found</li>';
+              else
+                top.forEach((t) => {
+                  const li = document.createElement("li");
+                  li.className = t.deprecated
+                    ? "text-red-400"
+                    : t.score && t.score < 30
+                    ? "text-amber-400"
+                    : "text-yellow-300";
+                  li.textContent =
+                    t.name +
+                    (t.deprecated
+                      ? " — deprecated"
+                      : " — score " + (t.score || "N/A"));
+                  issuesEl.appendChild(li);
+                });
+            }
+          } else if (action === "badge") {
+            // Show badge result or file write message
+            let out = r.stdout || "No output";
+            if (/Badge written to/i.test(out)) {
+              document.getElementById(
+                "output"
+              ).innerHTML = `<span class="text-emerald-400 font-semibold">Badge successfully written to README.md!</span>`;
+            } else if (/https:\/\/img\.shields\.io\//.test(out)) {
+              document.getElementById(
+                "output"
+              ).innerHTML = `<img src="${out.trim()}" alt="Dependency Health Badge" class="inline-block">`;
+            } else {
+              document.getElementById("output").textContent = out;
+            }
+          } else {
+            document.getElementById("output").textContent =
+              r.stdout || "No output";
+          }
+        } catch (e) {
+          document.getElementById("output").textContent = "Error: " + e.message;
+        }
+      }
+
+      document.getElementById("analyzeBtn").addEventListener("click", () =>
+        runAction("analyze", {
+          depcheck: document.getElementById("depcheckToggle").checked,
+        })
+      );
+      document
+        .getElementById("migrateBtn")
+        .addEventListener("click", () => runAction("migrate", { fix: false }));
+      document.getElementById("migrateFixBtn").addEventListener("click", () => {
+        if (
+          !confirm(
+            "This will modify package.json in the project folder. Proceed?"
+          )
+        )
+          return;
+        runAction("migrate", { fix: true });
+      });
+      document
+        .getElementById("badgeBtn")
+        .addEventListener("click", () => runAction("badge", {}));
+      document.getElementById("openCli").addEventListener("click", () => {
+        alert(
+          "To run CLI manually, open a terminal in the project folder and use: depdoctor analyze"
+        );
+      });
+    </script>
+  </body>
+</html>
