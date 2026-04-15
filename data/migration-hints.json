@@ -1,0 +1,82 @@
+{
+  "moment": {
+    "alternatives": ["dayjs", "date-fns", "luxon"],
+    "reason": "Large bundle size, mutable API, in maintenance mode"
+  },
+  "request": {
+    "alternatives": ["undici", "ky", "got"],
+    "reason": "Deprecated since 2020"
+  },
+  "lodash": {
+    "alternatives": ["lodash-es", "es-toolkit"],
+    "reason": "Large bundle when imported entirely; most utilities are native now"
+  },
+  "underscore": {
+    "alternatives": ["lodash-es", "es-toolkit"],
+    "reason": "Superseded by lodash and native methods"
+  },
+  "left-pad": {
+    "alternatives": [],
+    "reason": "String.prototype.padStart() is built-in"
+  },
+  "node-fetch": {
+    "alternatives": ["undici"],
+    "reason": "Node 18+ has built-in fetch()"
+  },
+  "uuid": {
+    "alternatives": ["nanoid"],
+    "reason": "crypto.randomUUID() is built-in since Node 19"
+  },
+  "chalk": {
+    "alternatives": ["picocolors", "kleur"],
+    "reason": "Lighter alternatives exist if bundle size matters"
+  },
+  "axios": {
+    "alternatives": ["ky", "undici"],
+    "reason": "Large bundle; native fetch + lightweight wrappers are sufficient"
+  },
+  "glob": {
+    "alternatives": ["fast-glob", "tinyglobby"],
+    "reason": "Slower than modern alternatives"
+  },
+  "rimraf": {
+    "alternatives": [],
+    "reason": "fs.rm({ recursive: true }) is built-in since Node 14"
+  },
+  "mkdirp": {
+    "alternatives": [],
+    "reason": "fs.mkdir({ recursive: true }) is built-in since Node 10"
+  },
+  "querystring": {
+    "alternatives": [],
+    "reason": "URLSearchParams is built-in"
+  },
+  "colors": {
+    "alternatives": ["picocolors", "chalk"],
+    "reason": "Unmaintained and had a supply chain attack in 2022"
+  },
+  "npmlog": {
+    "alternatives": ["pino", "consola"],
+    "reason": "Deprecated, no longer maintained"
+  },
+  "q": {
+    "alternatives": [],
+    "reason": "Native Promises replaced Q years ago"
+  },
+  "bluebird": {
+    "alternatives": [],
+    "reason": "Native Promises are fast enough; V8 optimizations closed the gap"
+  },
+  "async": {
+    "alternatives": [],
+    "reason": "async/await and Promise.all() cover most use cases natively"
+  },
+  "optimist": {
+    "alternatives": ["commander", "yargs"],
+    "reason": "Deprecated since 2014"
+  },
+  "coffee-script": {
+    "alternatives": ["typescript"],
+    "reason": "CoffeeScript is effectively abandoned"
+  }
+}

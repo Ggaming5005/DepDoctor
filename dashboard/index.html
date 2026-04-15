@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>depdoctor - Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <h1 class="logo">
+            <span class="logo-icon">&#x1FA7A;</span>
+            depdoctor
+          </h1>
+          <span class="version">v1.0.0</span>
+        </div>
+        <div class="header-right">
+          <button id="theme-toggle" class="btn btn-icon" title="Toggle theme">
+            <span class="theme-icon-light">&#9788;</span>
+            <span class="theme-icon-dark">&#9790;</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Actions Bar -->
+      <div class="actions-bar">
+        <button id="btn-analyze" class="btn btn-primary">Analyze</button>
+        <button id="btn-migrate" class="btn btn-secondary">Migrate</button>
+        <button id="btn-badge" class="btn btn-secondary">Badge</button>
+        <label class="checkbox-label">
+          <input type="checkbox" id="chk-depcheck" />
+          Include depcheck
+        </label>
+      </div>
+
+      <!-- Score Card -->
+      <div id="score-section" class="score-section hidden">
+        <div class="score-card">
+          <div class="score-gauge" id="score-gauge">
+            <svg viewBox="0 0 120 120" class="score-ring">
+              <circle cx="60" cy="60" r="52" class="score-ring-bg" />
+              <circle
+                cx="60"
+                cy="60"
+                r="52"
+                class="score-ring-fill"
+                id="score-ring-fill"
+              />
+            </svg>
+            <div class="score-value" id="score-value">—</div>
+          </div>
+          <div class="score-label">Project Score</div>
+          <div class="score-meta" id="score-meta"></div>
+        </div>
+      </div>
+
+      <!-- Issues Summary -->
+      <div id="issues-section" class="issues-section hidden">
+        <h2 class="section-title">Issues</h2>
+        <div id="issues-list" class="issues-list"></div>
+      </div>
+
+      <!-- Search + Filter -->
+      <div id="table-controls" class="table-controls hidden">
+        <input
+          type="text"
+          id="search-input"
+          class="search-input"
+          placeholder="Filter packages..."
+        />
+        <select id="filter-select" class="filter-select">
+          <option value="all">All</option>
+          <option value="prod">Production</option>
+          <option value="dev">Dev</option>
+          <option value="issues">Issues only</option>
+        </select>
+      </div>
+
+      <!-- Results Table -->
+      <div id="table-section" class="table-section hidden">
+        <div class="table-wrapper">
+          <table class="results-table" id="results-table">
+            <thead>
+              <tr>
+                <th data-sort="name">Package</th>
+                <th data-sort="installed">Installed</th>
+                <th data-sort="latest">Latest</th>
+                <th data-sort="score">Score</th>
+                <th data-sort="vulns">Vuln</th>
+                <th data-sort="downloads">Downloads</th>
+                <th data-sort="size">Size</th>
+              </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Migration Results -->
+      <div id="migrate-section" class="migrate-section hidden">
+        <h2 class="section-title">Migration Suggestions</h2>
+        <div id="migrate-list" class="migrate-list"></div>
+      </div>
+
+      <!-- Badge Result -->
+      <div id="badge-section" class="badge-section hidden">
+        <h2 class="section-title">Badge</h2>
+        <div id="badge-content" class="badge-content"></div>
+      </div>
+
+      <!-- Loading Overlay -->
+      <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+        <p id="loading-text">Analyzing dependencies...</p>
+      </div>
+
+      <!-- Toast Container -->
+      <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
